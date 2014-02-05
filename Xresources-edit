@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+
+# Author: Olivier Mengué
+# To install:
+#    chmod 700 Xresources-edit
+#    xrdb -cpp Xresources-edit /dev/null
+
+
+# Remove the filename that cpp is supposed to process
+pop @ARGV;
+
+# Shell quoting
+foreach (@ARGV) {
+    next unless /^-D.*["' \t\n]/;
+    s/'/'\\''/;
+    s/^(-D\w+=)(.*)$/$1'$2'/g;
+}
+
+my $ext = 'src';
+
+open my $f, '>', "$ENV{HOME}/.Xresources.edit";
+print $f <<EOF;
+#!/bin/sh
+if [ ! -f "\$HOME/.Xresources.$ext" ]; then
+	{
+		echo '! Do not edit ~/.Xresources, but ~/.Xresources.$ext'
+		echo '! Use \$HOME/.Xresources.edit to edit this file'
+		echo '!'
+		cat "\$HOME/.Xresources"
+	} > "\$HOME/.Xresources.$ext"
+fi
+if [ "\$HOME/.Xresources" -nt "\$HOME/.Xresources.$ext" ]; then
+	echo '.Xresources is more recent than .Xresources.$ext' > &2
+	exit 1
+fi
+
+\$EDITOR "\$HOME/.Xresources.$ext" && exec /usr/bin/cpp @ARGV "\$HOME/.Xresources.$ext" "\$HOME/.Xresources"
+EOF
+chmod 0700, "$ENV{HOME}/.Xresources.edit";
