@@ -20,7 +20,7 @@
 # Running as called as 'cpp' by 'xrdb'
 if [ $# -gt 0 ]; then
 	# Run cpp and save the result as ~/.Xresources
-	chmod u+w "$HOME/.Xresources"
+	[ -e "$HOME/.Xresources" ] && chmod u+w "$HOME/.Xresources"
 	cpp "$@" | tee "$HOME/.Xresources"
 	res=$?
 	chmod a-wx "$HOME/.Xresources"
@@ -53,4 +53,4 @@ fi
 
 ${EDITOR:-vi} "$HOME/.Xresources.$ext"
 # Reload resources and call ourself as a wrapper around cpp (to create .Xresources)
-[ "$HOME/.Xresources.$ext" -nt "$HOME/.Xresources" ] && xrdb -cpp "$0" "$HOME/.Xresources.$ext"
+[ ! -f "$HOME/.Xresources" -o "$HOME/.Xresources.$ext" -nt "$HOME/.Xresources" ] && xrdb -cpp "$0" "$HOME/.Xresources.$ext"
